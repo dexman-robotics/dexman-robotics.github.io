@@ -66,11 +66,14 @@
         <br>
 
         <h2 class="title is-4" style="font-weight: 700;">Qualitative Results</h2>
-        <div class="content has-text-centered">
-          <p>Hand-object predictions on egocentric video. Click a thumbnail to switch samples. More demos coming soon.</p>
-        </div>
-        <div class="thumbs" id="thumbs"></div>
-        <div class="demo-grid" id="demo-grid"></div>
+        <h3 class="title is-5">Hand-camera predictions</h3>
+        <div class="demo-grid" id="qual-hand"></div>
+        <br>
+        <h3 class="title is-5">Object-mesh predictions (HOT3D)</h3>
+        <div class="demo-grid" id="qual-hot3d"></div>
+        <br>
+        <h3 class="title is-5">Failure cases</h3>
+        <div class="demo-grid" id="qual-fail"></div>
         <br><br>
 
         <h2 class="title is-4" style="font-weight: 700;">Simulation: Grasp and Hold</h2>
@@ -103,36 +106,22 @@
 </footer>
 
 <script>
-  // Add new samples here: drop files into resources/demo/<id>/ and append the id.
-  const SAMPLES = ["00000", "00001", "00003", "00004"];
-  const CELLS = [
-    ["gt.gif", "Ground truth", "img"],
-    ["pred.gif", "Prediction", "img"],
-    ["hand_object_traj.mp4", "Hand-object trajectory", "video"],
-    ["hand_uvd_object_traj.mp4", "Hand UVD + object trajectory", "video"],
-    ["object_traj.mp4", "Object trajectory", "video"],
-    ["object_masks.mp4", "Object masks", "video"],
-    ["object_points.mp4", "Object points", "video"],
-  ];
-  const grid = document.getElementById("demo-grid"), thumbs = document.getElementById("thumbs");
-  function show(id) {
-    grid.innerHTML = "";
-    for (const [file, cap, kind] of CELLS) {
-      const src = `resources/demo/${id}/${file}`;
+  const QUAL = {
+    "qual-hand": ["sample_000_egoverse","sample_002_egodex","sample_002_hoi4d","sample_004_egopro","sample_012_egoverse","sample_012_h2o","sample_016_hoi4d","sample_018_show3d","sample_048_egodex","sample_048_show3d"].map(n => `resources/qual/hand/${n}_pred.mp4`),
+    "qual-hot3d": [2,3,4,5,6,7,9,13,14,15].map(i => `resources/qual/hot3d/sample_${String(i).padStart(3,"0")}_hot3d_pred.mp4`),
+    "qual-fail": [2,4,9,15,19,23,29,30,38,39].map(i => `resources/qual/fail/sample_${String(i).padStart(3,"0")}_show3d_pred.mp4`),
+  };
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) e.isIntersecting ? e.target.play().catch(() => {}) : e.target.pause();
+  }, { rootMargin: "200px" });
+  for (const [id, srcs] of Object.entries(QUAL)) {
+    const g = document.getElementById(id);
+    for (const src of srcs) {
       const d = document.createElement("div"); d.className = "demo-cell";
-      d.innerHTML = (kind === "img"
-        ? `<img src="${src}" loading="lazy" alt="${cap}">`
-        : `<video src="${src}" autoplay muted loop playsinline></video>`) + `<div class="cap">${cap}</div>`;
-      grid.appendChild(d);
+      d.innerHTML = `<video src="${src}" muted loop playsinline preload="none"></video>`;
+      g.appendChild(d); io.observe(d.querySelector("video"));
     }
-    thumbs.querySelectorAll("button").forEach(b => b.classList.toggle("selected", b.dataset.id === id));
   }
-  for (const id of SAMPLES) {
-    const b = document.createElement("button"); b.dataset.id = id;
-    b.innerHTML = `<img src="resources/demo/${id}/gt.gif" alt="sample ${id}" loading="lazy">`;
-    b.onclick = () => show(id); thumbs.appendChild(b);
-  }
-  show(SAMPLES[0]);
 
   // Simulation videos: resources/sim_grasp_hold/<name>.mp4 with a <name>.jpg poster.
   const SIM = ["01_taco_137", "02_oakink2_O02-0090-00002", "03_grab_cubesmall", "04_taco_106", "05_oakink2_S10020",
@@ -140,10 +129,6 @@
     "11_oakink2_S10021", "12_grab_train", "13_taco_001", "14_oakink2_C10001", "15_grab_elephant",
     "16_taco_195", "17_oakink2_C11001", "18_grab_watch", "19_taco_071", "20_oakink2_O02-0015-00014"];
   const simGrid = document.getElementById("sim-grid");
-  // Play only on-screen videos so 20 clips don't all download at once.
-  const io = new IntersectionObserver(entries => {
-    for (const e of entries) e.isIntersecting ? e.target.play().catch(() => {}) : e.target.pause();
-  }, { rootMargin: "200px" });
   for (const name of SIM) {
     const d = document.createElement("div"); d.className = "demo-cell";
     const label = name.replace(/^\d+_/, "").replace(/_/g, " ");
