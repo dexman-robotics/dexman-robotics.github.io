@@ -73,6 +73,14 @@
         <div class="demo-grid" id="demo-grid"></div>
         <br><br>
 
+        <h2 class="title is-4" style="font-weight: 700;">Simulation: Grasp and Hold</h2>
+        <div class="content has-text-centered">
+          <p>A single RL policy controls the Sharpa hand to grasp diverse objects (TACO, GRAB, OakInk2) and carry them along randomly generated trajectories.
+            <span style="color:#1fb5d6;font-weight:600;">Cyan</span>: upcoming target path; <span style="color:#e8962e;font-weight:600;">orange</span>: object path so far.</p>
+        </div>
+        <div class="demo-grid" id="sim-grid"></div>
+        <br><br>
+
         <h2 class="title is-4" style="font-weight: 700;">BibTeX</h2>
         <div class="content has-text-left">
 <pre><code>@article{hsieh2026vli,
@@ -125,6 +133,24 @@
     b.onclick = () => show(id); thumbs.appendChild(b);
   }
   show(SAMPLES[0]);
+
+  // Simulation videos: resources/sim_grasp_hold/<name>.mp4 with a <name>.jpg poster.
+  const SIM = ["01_taco_137", "02_oakink2_O02-0090-00002", "03_grab_cubesmall", "04_taco_106", "05_oakink2_S10020",
+    "06_grab_toruslarge", "07_taco_075", "08_oakink2_O02-0092-00002", "09_grab_rubberduck", "10_taco_081",
+    "11_oakink2_S10021", "12_grab_train", "13_taco_001", "14_oakink2_C10001", "15_grab_elephant",
+    "16_taco_195", "17_oakink2_C11001", "18_grab_watch", "19_taco_071", "20_oakink2_O02-0015-00014"];
+  const simGrid = document.getElementById("sim-grid");
+  // Play only on-screen videos so 20 clips don't all download at once.
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) e.isIntersecting ? e.target.play().catch(() => {}) : e.target.pause();
+  }, { rootMargin: "200px" });
+  for (const name of SIM) {
+    const d = document.createElement("div"); d.className = "demo-cell";
+    const label = name.replace(/^\d+_/, "").replace(/_/g, " ");
+    d.innerHTML = `<video src="resources/sim_grasp_hold/${name}.mp4" poster="resources/sim_grasp_hold/${name}.jpg"
+      muted loop playsinline preload="none"></video><div class="cap">${label}</div>`;
+    simGrid.appendChild(d); io.observe(d.querySelector("video"));
+  }
 </script>
 </body>
 </html>
